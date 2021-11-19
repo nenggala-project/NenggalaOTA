@@ -136,7 +136,7 @@
         private function initConfig() {
             Flight::register( 'cfg', '\DotNotation', array(), function( $cfg ) {
                 $cfg->set( 'basePath', '' );
-                $cfg->set( 'realBasePath', realpath( __DIR__ . '/..' ) );
+                $cfg->set( 'realBasePath', realpath( __DIR__ . '/../public' ) );
             });
         }
 

@@ -22,7 +22,7 @@
         CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     */
 
-    require 'vendor/autoload.php';
+    require '../vendor/autoload.php';
 
     use \JX\CmOta\CmOta;
 
