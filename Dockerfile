@@ -1,54 +1,46 @@
-FROM php:7.1-apache
-MAINTAINER Julian Xhokaxhiu <info at julianxhokaxhiu dot com>
+ARG PHP_VERSION=7.4
+FROM alpine:latest
 
-# internal variables
-ENV HTML_DIR /var/www/html
+ENV HTML_DIR /var/www/localhost/htdocs
 ENV FULL_BUILDS_DIR $HTML_DIR/builds/full
 
-# set the working directory
-WORKDIR $HTML_DIR
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# enable mod_rewrite
-RUN a2enmod rewrite
+# Install system dependencies
+RUN apk add --no-cache apache2 \
+	php7 \
+	php7-apache2 \
+	php7-pecl-apcu \
+	php7-mbstring \
+	php7-intl \
+	php7-json \
+	php7-openssl \
+	php7-phar \
+	php7-zip \
+	git \
+	shadow \
+	linux-pam && \
+groupmod -g 1000 apache && usermod -u 1000 apache && \
+apk del --no-cache shadow linux-pam && \
+ln -s /dev/fd/1 /var/log/apache2/access.log && \
+ln -s /dev/fd/2 /var/log/apache2/error.log && \
+sed -i '/LoadModule rewrite_module/s/^#//g' /etc/apache2/httpd.conf && \
+sed -i '/AllowOverride None/s/None/All/g' /etc/apache2/httpd.conf
 
-# install the PHP extensions we need
-RUN apt-get update \
-        && buildDeps=" \
-                zlib1g-dev \
-        " \
-        && apt-get install -y git $buildDeps --no-install-recommends \
-        && rm -r /var/lib/apt/lists/* \
-        \
-        && docker-php-ext-install zip \
-        \
-        && pecl install apcu \
-        && docker-php-ext-enable apcu \
-        \
-        && docker-php-source delete \
-        && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $buildDeps
+RUN echo 'apc.ttl=7200' > /etc/php7/conf.d/opcache-recommended.ini
 
-# set recommended settings for APCu
-# see http://php.net/manual/en/apcu.configuration.php
-RUN { \
-    echo 'apc.ttl=7200'; \
-  } > /usr/local/etc/php/conf.d/opcache-recommended.ini
+WORKDIR /var/www/localhost/htdocs
 
-# install latest version of composer
-ADD https://getcomposer.org/composer.phar /usr/local/bin/composer
-RUN chmod 0755 /usr/local/bin/composer
+RUN rm index.html && composer create-project --no-cache julianxhokaxhiu/lineage-ota .
 
-# add all the project files
-COPY . $HTML_DIR
+COPY .htaccess .
 
-# enable indexing for Apache
-RUN sed -i "1s;^;Options +Indexes\n\n;" .htaccess
+RUN chown -R apache:apache /var/www/localhost/htdocs
 
-# install dependencies
-RUN composer install --no-plugins --no-scripts
+EXPOSE 80
 
-# fix permissions
-RUN chmod -R 0775 /var/www/html \
-    && chown -R www-data:www-data /var/www/html
-
-# create volumes
 VOLUME $FULL_BUILDS_DIR
+
+CMD httpd -DFOREGROUND "$@"
+

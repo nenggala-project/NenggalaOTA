@@ -3,6 +3,7 @@
         The MIT License (MIT)
 
         Copyright (c) 2020 Julian Xhokaxhiu
+        Copyright (c) 2021 The Nenggala Project
 
         Permission is hereby granted, free of charge, to any person obtaining a copy of
         this software and associated documentation files (the "Software"), to deal in
@@ -67,7 +68,7 @@
                     'changes' => $build->getChangelogUrl(),
                     'channel' => $build->getChannel(),
                     'filename' => $build->getFilename(),
-                    // LineageOS
+                    // Nenggala
                     'romtype' => $build->getChannel(),
                     'datetime' => $build->getTimestamp(),
                     'version' => $build->getVersion(),
