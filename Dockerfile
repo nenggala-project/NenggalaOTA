@@ -44,7 +44,5 @@ RUN chown -R apache:apache /var/www/localhost/htdocs
 
 EXPOSE 80
 
-VOLUME $FULL_BUILDS_DIR
-
 CMD httpd -DFOREGROUND "$@"
 
